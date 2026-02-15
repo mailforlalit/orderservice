@@ -2,6 +2,7 @@ package com.example.orderservice.controller;
 
 import com.example.orderservice.dto.Product;
 import com.example.orderservice.feign.OrderFeignClient;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.cloud.openfeign.FeignClientBuilder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +22,6 @@ public class OrderController {
         this.webClient = webClientBuilder.build();
         this.orderFeignClient = orderFeignClient;
         this.restTemplate = restTemplate;
-
     }
 
     @GetMapping("/orders/product/{id}")
@@ -40,4 +40,16 @@ public class OrderController {
         return orderFeignClient.getProductById(id);
     }
 
+
+    @GetMapping("/orders/product/circuit/{id}")
+    @CircuitBreaker(name = "productservice", fallbackMethod="getCircuitOrderByIdFallback")
+    public Product getCircuitOrderById(@PathVariable Long id) {
+        return orderFeignClient.getProductById(id);
+    }
+
+    public Product getCircuitOrderByIdFallback(Long id, Throwable throwable) {
+        System.out.println("Not able to fetch product with Id " + id);
+        System.out.println("Fallback executed :: " + throwable.getMessage());
+        return new Product();
+    }
 }

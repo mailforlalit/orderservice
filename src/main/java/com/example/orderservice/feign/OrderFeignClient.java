@@ -10,4 +10,6 @@ public interface OrderFeignClient {
 
     @GetMapping("/products/{id}")
     Product getProductById(@RequestParam("id") long id);
+
+
 }
